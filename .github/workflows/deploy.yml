@@ -1,4 +1,4 @@
-name: Deploy Angular to GitHub Pages
+sname: Deploy Angular to GitHub Pages
 
 on:
   push:
@@ -23,8 +23,8 @@ jobs:
 
       - name: Generate Environment Files
         env:
-          supabaseUrl: ${{ __NG_APP_SUPABASE_URL__ }}
-          supabaseKey: ${{ __NG_APP_SUPABASE_KEY__ }}
+          supabaseUrl: ${{ secrets.__NG_APP_SUPABASE_URL__ }}
+          supabaseKey: ${{ secrets__NG_APP_SUPABASE_KEY__ }}
         run: npm run config
 
       - name: Build
