@@ -7,7 +7,178 @@
 <!-- * * * * * * * to get started with your project! * * * * * * * -->
 <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
 
-<style>
+<!-- <h1 class="text-3xl font-bold italic underline">PlanlaGel</h1> -->
+
+<div class="container mx-auto p-4 max-w-2xl">
+  <header class="mb-8 text-center">
+    <h1 class="text-4xl font-bold text-gray-700">Angular & Supabase Todo</h1>
+  </header>
+
+  <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+    <form (ngSubmit)="addTodo()" class="flex items-center">
+      <input
+        type="text"
+        [(ngModel)]="newTodoText"
+        name="newTodoText"
+        placeholder="Yeni bir görev ekle..."
+        class="flex-grow p-3 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow"
+        required
+      />
+      <button
+        type="submit"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded-r-md transition-colors"
+        [disabled]="!newTodoText.trim()"
+      >
+        Ekle
+      </button>
+    </form>
+  </div>
+
+  @if ((todos$ | async); as todos) { @if (todos.length > 0) {
+  <div class="space-y-4">
+    @for (todo of todos; track todo.id) {
+    <div
+      class="bg-white shadow-md rounded-lg p-4 flex items-center justify-between hover:shadow-lg transition-shadow"
+      [class.bg-green-50]="todo.is_completed"
+    >
+      <div class="flex items-center flex-grow">
+        <input
+          type="checkbox"
+          [checked]="todo.is_completed"
+          (change)="toggleComplete(todo)"
+          class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mr-4 cursor-pointer"
+        />
+
+        @if (editingTodoId !== todo.id) {
+        <div class="flex-grow">
+          <span
+            [class.line-through]="todo.is_completed"
+            [class.text-gray-500]="todo.is_completed"
+            class="text-lg text-gray-800 cursor-pointer"
+            (dblclick)="startEdit(todo)"
+          >
+            {{ todo.task }}
+          </span>
+        </div>
+        } @else {
+        <input
+          type="text"
+          [(ngModel)]="editingTodoText"
+          name="editingTodoText_{{ todo.id }}"
+          (blur)="saveEdit(todo)"
+          (keyup.enter)="saveEdit(todo)"
+          (keyup.escape)="cancelEdit()"
+          class="flex-grow p-1 border border-blue-400 rounded focus:ring-1 focus:ring-blue-600 outline-none"
+          autofocus
+        />
+        }
+      </div>
+
+      <div class="flex-shrink-0 ml-4">
+        @if (editingTodoId !== todo.id) {
+        <button
+          (click)="startEdit(todo)"
+          class="text-yellow-500 hover:text-yellow-700 mr-2 p-1 rounded hover:bg-yellow-100 transition-colors"
+          aria-label="Görevi Düzenle"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-5 h-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+            />
+          </svg>
+        </button>
+        } @else {
+        <button
+          (click)="saveEdit(todo)"
+          class="text-green-500 hover:text-green-700 mr-2 p-1 rounded hover:bg-green-100 transition-colors"
+          aria-label="Kaydet"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-5 h-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M4.5 12.75l6 6 9-13.5"
+            />
+          </svg>
+        </button>
+        <button
+          (click)="cancelEdit()"
+          class="text-gray-500 hover:text-gray-700 mr-2 p-1 rounded hover:bg-gray-100 transition-colors"
+          aria-label="İptal"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-5 h-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+        }
+        <button
+          (click)="deleteTodo(todo)"
+          class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-100 transition-colors"
+          aria-label="Görevi Sil"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-5 h-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c1.153 0 2.24.032 3.287.094M5.116 5.79l-.012.008C4.966 5.803 4.835 5.83 4.706 5.873m0 0c-.103.033-.203.073-.298.12C4.01 6.108 3.75 6.335 3.75 6.601v.151c0 .34.18.637.437.816M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+  } @else {
+  <div class="text-center text-gray-500 py-8">
+    <p class="text-xl mb-2">Henüz hiç görev yok.</p>
+    <p>Yukarıdan yeni bir görev ekleyerek başlayabilirsiniz!</p>
+  </div>
+  } } @else {
+  <div class="text-center text-gray-500 py-8">
+    <p>Görevler yükleniyor veya bir hata oluştu...</p>
+  </div>
+  }
+
+  <footer class="text-center text-sm text-gray-500 mt-12">
+    <p>Angular {{ angularVersion }} & Supabase Todo App</p>
+  </footer>
+</div>
+
+<!-- <style>
   :host {
     --bright-blue: oklch(51.01% 0.274 263.83);
     --electric-violet: oklch(53.18% 0.28 296.97);
@@ -51,9 +222,9 @@
     line-height: 100%;
     letter-spacing: -0.125rem;
     margin: 0;
-    font-family: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-      Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-      "Segoe UI Symbol";
+    font-family: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol";
   }
 
   p {
@@ -231,32 +402,27 @@
     <div class="divider" role="separator" aria-label="Divider"></div>
     <div class="right-side">
       <div class="pill-group">
-        @for (item of [
-          { title: 'Explore the Docs', link: 'https://angular.dev' },
-          { title: 'Learn with Tutorials', link: 'https://angular.dev/tutorials' },
-          { title: 'CLI Docs', link: 'https://angular.dev/tools/cli' },
-          { title: 'Angular Language Service', link: 'https://angular.dev/tools/language-service' },
-          { title: 'Angular DevTools', link: 'https://angular.dev/tools/devtools' },
-        ]; track item.title) {
-          <a
-            class="pill"
-            [href]="item.link"
-            target="_blank"
-            rel="noopener"
+        @for (item of [ { title: 'Explore the Docs', link: 'https://angular.dev'
+        }, { title: 'Learn with Tutorials', link:
+        'https://angular.dev/tutorials' }, { title: 'CLI Docs', link:
+        'https://angular.dev/tools/cli' }, { title: 'Angular Language Service',
+        link: 'https://angular.dev/tools/language-service' }, { title: 'Angular
+        DevTools', link: 'https://angular.dev/tools/devtools' }, ]; track
+        item.title) {
+        <a class="pill" [href]="item.link" target="_blank" rel="noopener">
+          <span>{{ item.title }}</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="14"
+            viewBox="0 -960 960 960"
+            width="14"
+            fill="currentColor"
           >
-            <span>{{ item.title }}</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="14"
-              viewBox="0 -960 960 960"
-              width="14"
-              fill="currentColor"
-            >
-              <path
-                d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"
-              />
-            </svg>
-          </a>
+            <path
+              d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"
+            />
+          </svg>
+        </a>
         }
       </div>
       <div class="social-links">
@@ -322,7 +488,7 @@
       </div>
     </div>
   </div>
-</main>
+</main> -->
 
 <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
 <!-- * * * * * * * * * * * The content above * * * * * * * * * * * * -->
@@ -332,5 +498,4 @@
 <!-- * * * * * * * * * * End of Placeholder  * * * * * * * * * * * * -->
 <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
 
-
-<router-outlet />
+<!-- <router-outlet /> -->
