@@ -1,4 +1,4 @@
-sname: Deploy Angular to GitHub Pages
+name: Deploy Angular App to GitHub Pages
 
 on:
   push:
@@ -8,30 +8,56 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "16"
-          cache: "npm"
+          node-version: '18'
+          cache: 'npm'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Generate Environment Files
-        env:
-          supabaseUrl: ${{ secrets.__NG_APP_SUPABASE_URL__ }}
-          supabaseKey: ${{ secrets__NG_APP_SUPABASE_KEY__ }}
-        run: npm run config
+      # YENİ ADIM: Environment dosyasını GitHub Secrets ile yapılandırma
+      - name: Configure Angular Production Environment
+        # Bu adımda src/environments/environment.prod.ts dosyasındaki yer tutucuları
+        # GitHub Secrets ile değiştireceğiz.
+        # Eğer environment.prod.ts dosyanız yoksa ve sıfırdan oluşturmak istiyorsanız,
+        # aşağıdaki 'echo' komutlarını kullanabilirsiniz (sed komutları yerine).
+        run: |
+          # echo "Configuring src/environments/environment.prod.ts"
+          # Yer tutucuları olan environment.prod.ts dosyasının projenizde olduğunu varsayıyoruz.
+          # Eğer dosya adınız veya yolu farklıysa güncelleyin.
+          # PROD_ENV_FILE="src/environments/environment.prod.ts"
 
-      - name: Build
-        run: npm run build -- --base-href https://planlagel.github.io/angular-supabase-todo/
+          # Eğer environment.prod.ts'yi sıfırdan oluşturmak/üzerine yazmak isterseniz:
+          echo "export const environment = {
+            production: true,
+            supabaseUrl: '${{ secrets.NG_APP_SUPABASE_URL }}',
+            supabaseKey: '${{ secrets.NG_APP_SUPABASE_KEY }}'
+          };" > $PROD_ENV_FILE
+
+         
+      - name: Build Angular app for GitHub Pages
+        # --configuration production Angular'a src/environments/environment.prod.ts dosyasını kullanmasını söyler
+        run: npm run build -- --configuration production --base-href /${{ github.event.repository.name }}/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist/angular-supabase-todo' # Proje adınıza göre güncelleyin
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist/angular-supabase-todo
+        id: deployment
+        uses: actions/deploy-pages@v4
