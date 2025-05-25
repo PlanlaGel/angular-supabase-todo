@@ -12,8 +12,8 @@ const targetPath = path.join(
 const envConfigFile = `
 export const environment = {
   production: ${environment === 'prod'},
-  supabaseKey: '${process.env.__NG_APP_SUPABASE_KEY__ || ''}',
-  supabaseUrl: '${process.env.__NG_APP_SUPABASE_URL__ || ''}',
+  __NG_APP_SUPABASE_KEY__: '${process.env.__NG_APP_SUPABASE_KEY__ || ''}',
+  __NG_APP_SUPABASE_URL__: '${process.env.__NG_APP_SUPABASE_URL__ || ''}',
   // Diğer hassas veriler
 };
 `;
