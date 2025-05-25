@@ -34,7 +34,7 @@ jobs:
           __NG_APP_SUPABASE_KEY__: ${{ secrets.__NG_APP_SUPABASE_KEY__ }}
 
       - name: Build Angular App 📦
-        run: ng build --configuration production --base-href /${{ github.event.repository.name }}/ # GitHub Pages için base-href ayarı
+        run: npm run build -- --configuration production --base-href /${{ github.event.repository.name }}/ # GitHub Pages için base-href ayarı
 
       - name: Deploy to GitHub Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
