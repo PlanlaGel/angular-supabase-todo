@@ -40,5 +40,5 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages # Hedef branch
-          folder: dist/[proje-adınız] # Build çıktısının olduğu klasör (angular.json'daki outputPath)
+          folder: dist/angular-supabase-todo # Build çıktısının olduğu klasör (angular.json'daki outputPath)
           clean: true # Hedef branch'i dağıtımdan önce temizler
