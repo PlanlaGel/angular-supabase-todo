@@ -1,73 +1,44 @@
-name: Deploy Angular App to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
-      - main
+      - main # Veya ana dağıtım branch'iniz
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pages: write
-      id-token: write
-
+      contents: write # GitHub Pages'a deploy için gerekli
     steps:
-      - name: Checkout code
+      - name: Checkout 🛎️
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 🏗️
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
-          cache: "npm"
+          node-version: "18" # Kullandığınız Node.js versiyonu
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install Dependencies 🛠️
+        run: npm install
 
-      # YENİ ADIM: Environment dosyasını GitHub Secrets ile yapılandırma
-      - name: Configure Angular Production Environment
-        # Bu adımda src/environments/environment.prod.ts dosyasındaki yer tutucuları
-        # GitHub Secrets ile değiştireceğiz.
-        # Eğer environment.prod.ts dosyanız yoksa ve sıfırdan oluşturmak istiyorsanız,
-        # aşağıdaki 'echo' komutlarını kullanabilirsiniz (sed komutları yerine).
+      - name: Create/Update environment.prod.ts 🤫
         run: |
-          echo "Configuring src/environments/environment.prod.ts"
-          # Yer tutucuları olan environment.prod.ts dosyasının projenizde olduğunu varsayıyoruz.
-          # Eğer dosya adınız veya yolu farklıysa güncelleyin.
-          PROD_ENV_FILE="src/environments/environment.prod.ts"
+          echo "export const environment = {" > ./src/environments/environment.prod.ts
+          echo "  production: true," >> ./src/environments/environment.prod.ts
+          echo "  supabaseUrl: '${{ secrets.__NG_APP_SUPABASE_URL__ }}'," >> ./src/environments/environment.prod.ts
+          echo "  supabaseKey: '${{ secrets.__NG_APP_SUPABASE_KEY__ }}'" >> ./src/environments/environment.prod.ts
+          echo "};" >> ./src/environments/environment.prod.ts
+        env:
+          __NG_APP_SUPABASE_URL__: ${{ secrets.__NG_APP_SUPABASE_URL__ }}
+          __NG_APP_SUPABASE_KEY__: ${{ secrets.__NG_APP_SUPABASE_KEY__ }}
 
-          # Eğer environment.prod.ts'yi sıfırdan oluşturmak/üzerine yazmak isterseniz:
-          # echo "export const environment = {
-          #   production: true,
-          #   supabaseUrl: '${{ secrets.NG_APP_SUPABASE_URL }}',
-          #   supabaseKey: '${{ secrets.NG_APP_SUPABASE_KEY }}'
-          # };" > $PROD_ENV_FILE
+      - name: Build Angular App 📦
+        run: ng build --configuration production --base-href /${{ github.event.repository.name }}/ # GitHub Pages için base-href ayarı
 
-          # Eğer yer tutucuları değiştirmek istiyorsanız (Önerilen Yöntem A):
-          if [ -f $PROD_ENV_FILE ]; then
-            sed -i "s|__NG_APP_SUPABASE_URL__|${{ secrets.NG_APP_SUPABASE_URL }}|g" $PROD_ENV_FILE
-            sed -i "s|__NG_APP_SUPABASE_KEY__|${{ secrets.NG_APP_SUPABASE_KEY }}|g" $PROD_ENV_FILE
-            echo "Production environment configured using secrets."
-            cat $PROD_ENV_FILE # Yapılandırılmış dosyayı log'da göster (opsiyonel, debug için)
-          else
-            echo "ERROR: $PROD_ENV_FILE not found!"
-            exit 1
-          fi
-
-      - name: Build Angular app for GitHub Pages
-        # --configuration production Angular'a src/environments/environment.prod.ts dosyasını kullanmasını söyler
-        run: npm run build -- --configuration production --base-href /${{ github.event.repository.name }}/
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: "./dist/angular-supabase-todo" # Proje adınıza göre güncelleyin
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          branch: gh-pages # Hedef branch
+          folder: dist/[proje-adınız] # Build çıktısının olduğu klasör (angular.json'daki outputPath)
+          clean: true # Hedef branch'i dağıtımdan önce temizler
