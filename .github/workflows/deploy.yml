@@ -26,14 +26,47 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Environment Files
-        env:
-          __NG_APP_SUPABASE_URL__: ${{ secrets.__NG_APP_SUPABASE_URL__ }}
-          __NG_APP_SUPABASE_KEY__: ${{ secrets.__NG_APP_SUPABASE_KEY__ }}
-        run: npm run config
+      # YENİ ADIM: Environment dosyasını GitHub Secrets ile yapılandırma
+      - name: Configure Angular Production Environment
+        # Bu adımda src/environments/environment.prod.ts dosyasındaki yer tutucuları
+        # GitHub Secrets ile değiştireceğiz.
+        # Eğer environment.prod.ts dosyanız yoksa ve sıfırdan oluşturmak istiyorsanız,
+        # aşağıdaki 'echo' komutlarını kullanabilirsiniz (sed komutları yerine).
+        run: |
+          echo "Configuring src/environments/environment.prod.ts"
+          # Yer tutucuları olan environment.prod.ts dosyasının projenizde olduğunu varsayıyoruz.
+          # Eğer dosya adınız veya yolu farklıysa güncelleyin.
+          PROD_ENV_FILE="src/environments/environment.prod.ts"
 
-      - name: Build
-        run: npm run build -- --base-href https://planlagel.github.io/angular-supabase-todo/
+          # Eğer environment.prod.ts'yi sıfırdan oluşturmak/üzerine yazmak isterseniz:
+          # echo "export const environment = {
+          #   production: true,
+          #   supabaseUrl: '${{ secrets.NG_APP_SUPABASE_URL }}',
+          #   supabaseKey: '${{ secrets.NG_APP_SUPABASE_KEY }}'
+          # };" > $PROD_ENV_FILE
+
+          # Eğer yer tutucuları değiştirmek istiyorsanız (Önerilen Yöntem A):
+          if [ -f $PROD_ENV_FILE ]; then
+            sed -i "s|__NG_APP_SUPABASE_URL__|${{ secrets.NG_APP_SUPABASE_URL }}|g" $PROD_ENV_FILE
+            sed -i "s|__NG_APP_SUPABASE_KEY__|${{ secrets.NG_APP_SUPABASE_KEY }}|g" $PROD_ENV_FILE
+            echo "Production environment configured using secrets."
+            cat $PROD_ENV_FILE # Yapılandırılmış dosyayı log'da göster (opsiyonel, debug için)
+          else
+            echo "ERROR: $PROD_ENV_FILE not found!"
+            exit 1
+          fi
+
+      - name: Build Angular app for GitHub Pages
+        # --configuration production Angular'a src/environments/environment.prod.ts dosyasını kullanmasını söyler
+        run: npm run build -- --configuration production --base-href /${{ github.event.repository.name }}/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist/angular-supabase-todo" # Proje adınıza göre güncelleyin
 
       - name: Deploy to GitHub Pages
         id: deployment
