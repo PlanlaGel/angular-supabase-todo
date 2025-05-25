@@ -20,16 +20,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: "18"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
       - name: Generate Environment Files
         env:
-          supabaseUrl: ${{ __NG_APP_SUPABASE_URL__ }}
-          supabaseKey: ${{ __NG_APP_SUPABASE_KEY__ }}
+          __NG_APP_SUPABASE_URL__: ${{ secrets.__NG_APP_SUPABASE_URL__ }}
+          __NG_APP_SUPABASE_KEY__: ${{ secrets.__NG_APP_SUPABASE_KEY__ }}
         run: npm run config
 
       - name: Build
